@@ -7,15 +7,19 @@
   "scripts": {
     "tsc": "tsc",
     "watch-tsc": "tsc -w",
+    "client": "npm start --prefix frontend",
     "deploy": "node dist/src/server.js",
+    "dev": "concurrently \"npm run server\" \"npm run client\"",
     "watch-deploy": "nodemon dist/src/server.js",
     "server": "concurrently \"npm run watch-tsc\" \"npm run watch-deploy\"",
     "start": "npm run deploy",
-    "heroku-postbuild": "npm run tsc"
+    "heroku-postbuild": "npm run tsc",
+    "data:seed": "ts-node src/seederScript"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
     "config": "^3.1.0",
+    "cors": "^2.8.5",
     "express": "^4.16.4",
     "express-validator": "^5.3.1",
     "gravatar": "^1.8.0",
@@ -23,6 +27,7 @@
     "jsonwebtoken": "^8.5.1",
     "mongoose": "^5.5.7",
     "request": "^2.88.0",
+    "ts-node": "^9.1.1",
     "typescript": "^3.4.5"
   },
   "devDependencies": {

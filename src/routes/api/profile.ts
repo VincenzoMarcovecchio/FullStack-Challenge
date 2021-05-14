@@ -12,6 +12,7 @@ const router: Router = Router();
 // @route   GET api/profile/me
 // @desc    Get current user's profile
 // @access  Private
+
 router.get("/me", auth, async (req: Request, res: Response) => {
   try {
     const profile: IProfile = await Profile.findOne({
