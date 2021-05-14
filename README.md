@@ -10,6 +10,10 @@ routes/api folder
 - login route
 - a route that returns validation of the token
 
+notes: the user schema has been added extra functions
+not sure this is right because it was previously made in javascript
+
+
 # Frontend
 
 ## What's Inside
@@ -25,6 +29,7 @@ routes/api folder
 
 - make sure you are in the talent folder and install the package.json
 - connect your mongoDB atlas with your own uri string
+- run the seeder script 
 - set up a .env file and create the followings variables JWT_SECRET JWT_EXPIRE
 - cd in the frontend folder and install package.json
 - good luck because is not finished yet
