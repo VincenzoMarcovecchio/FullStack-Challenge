@@ -1,5 +1,4 @@
 {
-  "mongoURI": "mongodb+srv://VincenzoMarcovecchio:ciao123@cluster0.ym4pt.mongodb.net/myFirstDatabase?retryWrites=true&w=majority",
-  "jwtSecret": "keboardcat",
-  "jwtExpiration": 360000
+  "mongoURI": "mongodb+srv://<username>:<password>@cluster0.ym4pt.mongodb.net/myFirstDatabase?retryWrites=true&w=majority",
+
 }
