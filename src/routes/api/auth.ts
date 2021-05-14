@@ -1,91 +1,112 @@
-import bcrypt from "bcryptjs";
-import config from "config";
-import { Router, Response } from "express";
-import { check, validationResult } from "express-validator/check";
-import HttpStatusCodes from "http-status-codes";
-import jwt from "jsonwebtoken";
+import { Router, Response, NextFunction } from "express";
 
-import auth from "../../middleware/auth";
-import Payload from "../../types/Payload";
-import Request from "../../types/Request";
-import User, { IUser } from "../../models/User";
+import HttpStatusCodes from "http-status-codes";
+
+//models
+import User from "../../models/User";
+
+//types
+import { IUser } from "../../types/user";
 
 const router: Router = Router();
 
-// @route   GET api/auth
-// @desc    Get authenticated user given the token
-// @access  Private
-router.get("/", auth, async (req: Request, res: Response) => {
+// @route   GET api/auth/register
+// @desc    Register
+// @access  Public
+
+router.post("/register", async (req, res, next) => {
+  const { username, email, password } = req.body;
+
   try {
-    const user: IUser = await User.findById(req.userId).select("-password");
-    res.json(user);
+    const user: IUser = await User.create({ username, email, password });
+    sendToken(user, 201, res);
   } catch (err) {
-    console.error(err.message);
-    res.status(HttpStatusCodes.INTERNAL_SERVER_ERROR).send("Server Error");
+    next(err);
   }
 });
 
-// @route   POST api/auth
-// @desc    Login user and get token
+// @route   POST api/auth/login
+// @desc    Login
 // @access  Public
-router.post(
-  "/",
-  [
-    check("email", "Please include a valid email").isEmail(),
-    check("password", "Password is required").exists()
-  ],
-  async (req: Request, res: Response) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res
-        .status(HttpStatusCodes.BAD_REQUEST)
-        .json({ errors: errors.array() });
-    }
-
-    const { email, password } = req.body;
-    try {
-      let user: IUser = await User.findOne({ email });
-
-      if (!user) {
-        return res.status(HttpStatusCodes.BAD_REQUEST).json({
-          errors: [
-            {
-              msg: "Invalid Credentials"
-            }
-          ]
-        });
-      }
-
-      const isMatch = await bcrypt.compare(password, user.password);
-
-      if (!isMatch) {
-        return res.status(HttpStatusCodes.BAD_REQUEST).json({
-          errors: [
-            {
-              msg: "Invalid Credentials"
-            }
-          ]
-        });
-      }
-
-      const payload: Payload = {
-        userId: user.id
-      };
-
-      jwt.sign(
-        payload,
-        config.get("jwtSecret"),
-        { expiresIn: config.get("jwtExpiration") },
-        (err, token) => {
-          if (err) throw err;
-          res.json({ token });
-        }
-      );
-    } catch (err) {
-      console.error(err.message);
-      res.status(HttpStatusCodes.INTERNAL_SERVER_ERROR).send("Server Error");
-    }
+router.post("/login", async (req, res, next) => {
+  const { email, password } = req.body;
+  console.log(req.body);
+  if (!email || !password) {
+    return next(
+      res.status(HttpStatusCodes.UNAUTHORIZED).json({
+        success: false,
+        msg: "Please provide an email and password",
+      })
+    );
   }
-);
+
+  try {
+    let user: IUser = await User.findOne({ email }).select("+password");
+
+    if (!user) {
+      return next(
+        res.status(HttpStatusCodes.NOT_FOUND).json({
+          success: false,
+          msg: "Incorrect Credentials",
+        })
+      );
+    }
+
+    const isMatch = await user.matchPassword(password);
+
+    if (!isMatch) {
+      return next(
+        res.status(HttpStatusCodes.NOT_FOUND).json({
+          success: false,
+          msg: "Incorrect Credentials",
+        })
+      );
+    }
+
+    sendToken(user, 201, res);
+  } catch (err) {
+    next(err);
+  }
+});
+
+const sendToken = (user, statusCode, res) => {
+  const token = user.getSignedToken();
+
+  res.status(statusCode).json({
+    success: true,
+    token,
+  });
+};
+
+// @route   GET api/auth/forgot/password
+// @desc    Get forgot password
+// @access  Public
+
+// router.get("/forgotpassword", auth, async (req: Request, res: Response) => {
+//   try {
+//     const user: IUser = await User.findById(req.userId).select("-password");
+//     res.json(user);
+//   } catch (err) {
+//     console.error(err.message);
+//     res.status(HttpStatusCodes.INTERNAL_SERVER_ERROR).send("Server Error");
+//   }
+// });
+
+// // @route   GET api/auth/reset/password
+// // @desc    Get authenticated user given the token
+// // @access  Private
+
+// router.put(
+//   "/resetpassword/:resetToken",
+//   async (req: Request, res: Response) => {
+//     try {
+//       const user: IUser = await User.findById(req.userId).select("-password");
+//       res.json(user);
+//     } catch (err) {
+//       console.error(err.message);
+//       res.status(HttpStatusCodes.INTERNAL_SERVER_ERROR).send("Server Error");
+//     }
+//   }
+// );
 
 export default router;

@@ -1,5 +1,4 @@
 import "./CartScreen.css";
-import { useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { Link } from "react-router-dom";
 
@@ -61,7 +60,7 @@ const CartScreen = () => {
             <p>${getCartSubTotal()}</p>
           </div>
           <div>
-            <button>Proceed To Checkout</button>
+            <Link to="/invoice">Proceed To Checkout</Link>
           </div>
         </div>
       </div>

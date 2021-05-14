@@ -1,29 +1,36 @@
-import config from "config";
-import { Response, NextFunction } from "express";
-import HttpStatusCodes from "http-status-codes";
+import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
+import User from "../models/User";
+import ErrorResponse from "../utils/errorResponse";
 
-import Payload from "../types/Payload";
-import Request from "../types/Request";
+const protect = async (req: Request, res: Response, next: NextFunction) => {
+  let token;
 
-export default function(req: Request, res: Response, next: NextFunction) {
-  // Get token from header
-  const token = req.header("x-auth-token");
+  if (
+    req.headers.authorization &&
+    req.headers.authorization.startsWith("Bearer")
+  ) {
+    token = req.headers.authorization.split(" ")[1];
+  }
 
-  // Check if no token
   if (!token) {
-    return res
-      .status(HttpStatusCodes.UNAUTHORIZED)
-      .json({ msg: "No token, authorization denied" });
+    return next(new ErrorResponse("Not authorized to access this route", 401));
   }
-  // Verify token
+
   try {
-    const payload: Payload | any = jwt.verify(token, config.get("jwtSecret"));
-    req.userId = payload.userId;
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await User.findById(decoded.id);
+
+    if (!user) {
+      return next(new ErrorResponse("No user found with this id", 404));
+    }
+
+    req.user = user;
+
     next();
-  } catch (err) {
-    res
-      .status(HttpStatusCodes.UNAUTHORIZED)
-      .json({ msg: "Token is not valid" });
+  } catch (error) {
+    return next(new ErrorResponse("Not authorized", 401));
   }
-}
+};
+
+export default protect;

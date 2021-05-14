@@ -1,5 +1,13 @@
-import { IProduct } from "../types/product";
 import { model, Schema } from "mongoose";
+import { Document } from "mongoose";
+
+export interface IProduct extends Document {
+  name: string;
+  price: number;
+  description: string;
+  countInStock: number;
+  imageUrl: string;
+}
 
 const productSchema: Schema = new Schema(
   {

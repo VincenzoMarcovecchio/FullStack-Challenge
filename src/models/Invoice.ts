@@ -16,6 +16,7 @@ const invoiceSchema: Schema = new Schema(
     },
 
     name: {
+      //change names
       type: String,
       required: true,
       trim: true,
@@ -39,5 +40,5 @@ const invoiceSchema: Schema = new Schema(
   { timestamps: true }
 );
 
-const Invoice = model<IProduct>("Invoice", invoiceSchema);
+const Invoice = model<IInvoice>("Invoice", invoiceSchema);
 export default Invoice;

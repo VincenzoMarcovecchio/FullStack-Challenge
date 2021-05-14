@@ -1,15 +1,23 @@
+require("dotenv").config({ path: "./config.env" });
+
 import express from "express";
 
 import connectDB from "../config/database";
 import auth from "./routes/api/auth";
-import user from "./routes/api/user";
 import products from "./routes/api/products";
-import profile from "./routes/api/profile";
+import validate from "./routes/api/private";
+import errorHandler from "./middleware/error";
 import cors from "cors";
 
 const app = express();
 
 app.use(cors());
+
+// parse application/x-www-form-urlencoded
+app.use(express.urlencoded({ extended: false }));
+
+// parse application/json
+app.use(express.json());
 
 // Connect to MongoDB
 connectDB();
@@ -25,9 +33,10 @@ app.get("/", (_req, res) => {
 });
 
 app.use("/api/auth", auth);
-app.use("/api/user", user);
-app.use("/api/profile", profile);
 app.use("/api/products", products);
+app.use("/api/private", validate);
+
+app.use(errorHandler);
 
 const port = app.get("port");
 const server = app.listen(port, () =>
